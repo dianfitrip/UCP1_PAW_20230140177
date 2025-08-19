@@ -1,25 +1,19 @@
-const mysql = require("mysql2/promise"); // Menggunakan promise-based
+const mysql = require("mysql2");
+require("dotenv").config();
 
-const db = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "myperpus",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+const connection = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
-
-(async () => {
-  try {
-    const connection = await db.getConnection();
-    console.log("Database connected");
-    connection.release();
-  } catch (err) {
-    console.error("Database failed to connect:", err.message);
-    process.exit(1);
+connection.connect((err) => {
+  if (err) {
+    console.error("Error connecting to the database:", err);
+    return;
   }
-})();
+  console.log("Connected to the MySQL database.");
+});
 
-module.exports = db;
+module.exports = connection;

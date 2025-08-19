@@ -1,38 +1,53 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
-const db = require("./database/db");
-const bookRoutes = require("./routes/bookroutes");
-const port = process.env.PORT || 3001;
+const port = process.env.PORT;
+const db = require("./database/db.js");
+const bukuRoutes = require("./routes/buku.js");
 const expressLayouts = require("express-ejs-layouts");
 
 
 app.set("view engine", "ejs");
 app.use(expressLayouts);
-app.set("layout", "layouts/main-layout");
-app.use(express.static("public"));
+app.set('layout', 'main-layout');
+
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/books", bookRoutes);
+
+app.use("/buku", bukuRoutes);
+
 
 app.get("/", (req, res) => {
-  res.render("index", { title: "Home" });
-});
-
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).render("error", {
-    message: "Terjadi kesalahan server",
-    error: err.message,
+  res.render("index", {
+    title: "Home",
   });
 });
+
+app.get("/contact", (req, res) => {
+  res.render("contact", {
+    title: "Contact",
+  });
+});
+
+app.get("/perpustakaan", (req, res) => {
+  db.query("SELECT * FROM buku ORDER BY id DESC", (err, results) => {
+    if (err) {
+      console.error("Error fetching books:", err);
+      return res.status(500).send("Internal Server Error");
+    }
+    res.render("perpustakaan", {
+      title: "Perpustakaan",
+      books: results,
+    });
+  });
+});
+
 
 app.use((req, res) => {
-  res.status(404).render("error", {
-    message: "Halaman tidak ditemukan",
-    error: "404 Not Found",
-  });
+  res.status(404).send("404 - Halaman tidak ditemukan");
 });
+
 
 app.listen(port, () => {
   console.log(`Server berjalan di http://localhost:${port}`);
